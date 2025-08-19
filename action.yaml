@@ -7,18 +7,6 @@ inputs:
     description: 'Path to VKubefile.yaml'
     required: true
     default: './VKubefile.yaml'
-  dockerhub_username_secret:
-    description: 'Secret name for Docker Hub Username'
-    required: false
-    default: 'DOCKERHUB_USERNAME'
-  dockerhub_token_secret:
-    description: 'Secret name for Docker Hub Token'
-    required: false
-    default: 'DOCKERHUB_TOKEN'
-  ghcr_token_secret:
-    description: 'Secret name for GHCR Token'
-    required: false
-    default: 'GHCR_TOKEN'
 
 runs:
   using: 'composite'
@@ -45,9 +33,9 @@ runs:
     - name: Parse registry from VKubefile
       shell: bash
       env:
-        DOCKERHUB_TOKEN: ${{ secrets[inputs.dockerhub_token_secret] }}
-        GHCR_TOKEN: ${{ secrets[inputs.ghcr_token_secret] }}
-        DOCKERHUB_USERNAME: ${{ secrets[inputs.dockerhub_username_secret] }}
+        DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       run: |
         # 安装 yq
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.34.2/yq_linux_amd64 -O /usr/bin/yq
