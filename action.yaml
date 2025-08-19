@@ -1,9 +1,6 @@
 name: 'Deploy with vkube-cli'
 description: 'Deploy containers using vkube-cli with Docker Hub/GHCR login and version checks'
-author: 'Your Name'
-branding:
-  icon: 'upload-cloud'
-  color: 'blue'
+author: 'certram'
 
 inputs:
   vkube_config_file:
@@ -11,56 +8,52 @@ inputs:
     required: true
     default: './VKubefile.yaml'
   dockerhub_username_secret:
-    description: 'Secret name for Docker Hub Username (default: DOCKERHUB_USERNAME)'
+    description: 'Secret name for Docker Hub Username'
     required: false
     default: 'DOCKERHUB_USERNAME'
   dockerhub_token_secret:
-    description: 'Secret name for Docker Hub Token (default: DOCKERHUB_TOKEN)'
+    description: 'Secret name for Docker Hub Token'
     required: false
     default: 'DOCKERHUB_TOKEN'
   ghcr_token_secret:
-    description: 'Secret name for GHCR Token (default: GHCR_TOKEN)'
+    description: 'Secret name for GHCR Token'
     required: false
     default: 'GHCR_TOKEN'
 
 runs:
   using: 'composite'
   steps:
-    # 1. 检出代码
     - uses: actions/checkout@v4
-
-    # 2. 安装 Docker 和 Buildx
     - uses: docker/setup-buildx-action@v3
-
-    # 3. 设置 Python 环境
     - uses: actions/setup-python@v5
       with:
         python-version: '3.9'
 
-    # 4. 检查工具版本（Python/pip/Docker）
     - name: Check tools
+      shell: bash
       run: |
         python --version
         pip --version
         docker --version
-      shell: bash
 
-    # 5. 安装 vkube-cli 并验证版本
     - name: Install and verify vkube-cli
+      shell: bash
       run: |
         pip install vkube==1.0.4
         vkube version
-      shell: bash
 
-    # 6. 解析 VKubefile.yaml 中的 registry 配置
     - name: Parse registry from VKubefile
-      id: parse_registry
+      shell: bash
+      env:
+        DOCKERHUB_TOKEN: ${{ secrets[inputs.dockerhub_token_secret] }}
+        GHCR_TOKEN: ${{ secrets[inputs.ghcr_token_secret] }}
+        DOCKERHUB_USERNAME: ${{ secrets[inputs.dockerhub_username_secret] }}
       run: |
         # 安装 yq
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.34.2/yq_linux_amd64 -O /usr/bin/yq
         sudo chmod +x /usr/bin/yq
 
-        # 解析 registry 类型
+        # 解析 registry
         REGISTRY=$(yq '.imageRegistry' "${{ inputs.vkube_config_file }}")
         echo "Found registry: $REGISTRY"
 
@@ -69,21 +62,19 @@ runs:
           "ghcr")
             echo "registry=ghcr.io" >> $GITHUB_ENV
             echo "registry_username=$GITHUB_ACTOR" >> $GITHUB_ENV
-            echo "registry_password=${{ secrets[inputs.ghcr_token_secret] }}" >> $GITHUB_ENV
+            echo "registry_password=$GHCR_TOKEN" >> $GITHUB_ENV
             ;;
           "docker")
             echo "registry=docker.io" >> $GITHUB_ENV
-            echo "registry_username=${{ secrets[inputs.dockerhub_username_secret] }}" >> $GITHUB_ENV
-            echo "registry_password=${{ secrets[inputs.dockerhub_token_secret] }}" >> $GITHUB_ENV
+            echo "registry_username=$DOCKERHUB_USERNAME" >> $GITHUB_ENV
+            echo "registry_password=$DOCKERHUB_TOKEN" >> $GITHUB_ENV
             ;;
           *)
             echo "Unsupported registry: $REGISTRY"
             exit 1
             ;;
         esac
-      shell: bash
 
-    # 7. 登录到容器仓库
     - name: Login to container registry
       if: env.registry != ''
       uses: docker/login-action@v3
@@ -92,8 +83,7 @@ runs:
         username: ${{ env.registry_username }}
         password: ${{ env.registry_password }}
 
-    # 8. 执行部署
     - name: Run vkube deploy
+      shell: bash
       run: |
         vkube deploy -f "${{ inputs.vkube_config_file }}"
-      shell: bash
