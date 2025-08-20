@@ -27,7 +27,7 @@ runs:
     - name: Install and verify vkube-cli
       shell: bash
       run: |
-        pip install vkube==2.0.0
+        pip install vkube==2.0.1
         vkube version
 
     - name: Parse registry from VKubefile
