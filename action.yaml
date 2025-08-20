@@ -65,7 +65,11 @@ runs:
         registry: ${{ env.registry }}
         username: ${{ env.registry_username }}
         password: ${{ env.registry_password }}
-
+    - name: Set vkube-cli configurations
+      shell: bash
+      run: |
+        vkube config -w GHCRToken=$GHCR_TOKEN
+        vkube config -w DockerhubToken=$DOCKERHUB_TOKEN
     - name: Run vkube deploy
       shell: bash
       run: |
