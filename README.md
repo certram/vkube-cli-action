@@ -6,6 +6,7 @@
     - `DOCKERHUB_TOKEN`: 含义： Docker Hub 的访问 Token
     - `DOCKERHUB_USERNAME`: 含义： Docker Hub的用户名
     - `GHCR_TOKEN`: 含义：GitHub Container Registry 的访问 Token
+    - `VKUBE_TOKEN`: 含义：vkube网页端的service token
 
 2. 示例工作流文件：
 
