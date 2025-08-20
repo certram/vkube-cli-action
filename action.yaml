@@ -40,7 +40,14 @@ runs:
         # 解析 registry
         REGISTRY=$(yq '.imageRegistry' "${{ inputs.vkube_config_file }}")
         echo "Found registry: $REGISTRY"
-
+        # 覆盖 vkubeToken(用 secret)
+        if [ -n "${VKUBE_TOKEN}" ]; then
+          yq -i ".vkubeToken = \"${VKUBE_TOKEN}\"" "${{ inputs.vkube_config_file }}"
+          echo "Injected vkubeToken from secrets"
+        else
+          echo "Error: VKUBE_TOKEN is not set in secrets"
+          exit 1
+        fi
         case "$REGISTRY" in
           "ghcr")
             echo "registry=ghcr.io" >> $GITHUB_ENV

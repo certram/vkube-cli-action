@@ -21,11 +21,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: your-username/vkube-deploy-action@v1
+    - uses: publisher/vkube-deploy-action@v1
         with:
         vkube_config_file: './VKubefile.yaml' #这里根据自己的VKubefile.yaml的位置来填写
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          VKUBE_TOKEN: ${{ secrets.VKUBE_TOKEN }}
 ```
